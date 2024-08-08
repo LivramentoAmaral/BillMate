@@ -32,9 +32,9 @@ app.use('/api', routes);
 app.use(errorHandler);
 
 // Rota inicial
-app.get('/', (req, res) => {
-  res.send('Olá, Mundo!');
-});
+// app.get('/', (req, res) => {
+//   res.send('Olá, Mundo!');
+// });
 
 // Configurando a porta e iniciando o servidor
 const PORT = process.env.PORT || 3000;
