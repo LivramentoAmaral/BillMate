@@ -1,11 +1,13 @@
 const express = require('express');
 const GroupController = require('../../controller/GroupController');
-const authMiddleware = require('../../middlewares/authMiddleware');
-
 const router = express.Router();
 
-router.post('/', authMiddleware, GroupController.createGroup);
-router.get('/:id', authMiddleware, GroupController.getGroup);
-router.put('/:id/add', authMiddleware, GroupController.addUserToGroup);
+router.post('/groups', GroupController.createGroup);
+
+router.get('/groups/:id', GroupController.getGroup);
+
+router.get('/groups/:id/invite/qrcode', GroupController.generateInviteQRCode);
+
+router.post('/invite/:inviteToken', GroupController.acceptInvite);
 
 module.exports = router;
