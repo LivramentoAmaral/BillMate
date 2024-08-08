@@ -2,13 +2,11 @@ const Group = require('../../models/Group');
 const QRCode = require('qrcode');
 
 module.exports = {
-  // Cria um novo grupo
   async createGroup(req, res) {
     const { name, members } = req.body;
 
     try {
-      const group = await Group.create({ name, members: [] }); // Inicialmente, cria o grupo sem membros
-
+      const group = await Group.create({ name, members: [] }); 
       res.status(201).json(group);
     } catch (err) {
       console.error(err);
@@ -16,7 +14,6 @@ module.exports = {
     }
   },
 
-  // Obtém os detalhes de um grupo
   async getGroup(req, res) {
     const { id } = req.params;
 
@@ -32,9 +29,8 @@ module.exports = {
     }
   },
 
-  // Gera um QR code para o convite de um grupo
   async generateInviteQRCode(req, res) {
-    const { id } = req.params; // ID do grupo
+    const { id } = req.params;
 
     try {
       const group = await Group.findById(id);
@@ -42,10 +38,8 @@ module.exports = {
         return res.status(404).json({ error: 'Grupo não encontrado' });
       }
 
-      // Gera uma URL para o convite
       const inviteUrl = `${process.env.APP_URL}/invite/${group._id}`;
 
-      // Gera o QR code a partir da URL do convite
       const qrCodeDataUrl = await QRCode.toDataURL(inviteUrl);
 
       res.json({ qrCodeDataUrl });
@@ -55,18 +49,16 @@ module.exports = {
     }
   },
 
-  // Aceita um convite e adiciona o usuário ao grupo via QR code
   async acceptInvite(req, res) {
-    const { inviteToken } = req.params; // Token do convite (ID do grupo)
-    const { userId } = req.body; // ID do usuário que está aceitando o convite
+    const { inviteToken } = req.params; 
+    const { userId } = req.body; 
 
     try {
-      const group = await Group.findById(inviteToken); // Aqui, inviteToken é o ID do grupo
+      const group = await Group.findById(inviteToken); 
       if (!group) {
         return res.status(404).json({ error: 'Convite inválido ou expirado' });
       }
 
-      // Adiciona o usuário ao grupo
       group.members.push(userId);
       await group.save();
 
