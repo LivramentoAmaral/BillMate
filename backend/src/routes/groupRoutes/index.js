@@ -2,12 +2,16 @@ const express = require('express');
 const GroupController = require('../../controller/GroupController');
 const router = express.Router();
 
-router.post('/groups', GroupController.createGroup);
+router.post('/', GroupController.createGroup);
 
-router.get('/groups/:id', GroupController.getGroup);
+router.get('my/:id', GroupController.listMyGroups);
 
-router.get('/groups/:id/invite/qrcode', GroupController.generateInviteQRCode);
+router.delete('/:userId/:groupId', GroupController.deleteGroup);
 
-router.post('/invite/:inviteToken', GroupController.acceptInvite);
+router.get('/:id', GroupController.getGroup);
+
+router.get('/:id/invite/qrcode', GroupController.generateInviteQRCode);
+
+router.post('/invite/', GroupController.acceptInvite);
 
 module.exports = router;

@@ -9,7 +9,7 @@ module.exports = {
       if (!group) {
         return res.status(404).json({ error: 'Grupo não encontrado' });
       }
-      if (!group.members.includes(userId)) {
+      if (!group.owner === userId) {
         return res.status(403).json({ error: 'Usuário não é membro do grupo' });
       }
       const transaction = await Transaction.create({ userId, groupId, type, value, date });
