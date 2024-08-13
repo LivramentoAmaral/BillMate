@@ -7,6 +7,7 @@ const UserSchema = new mongoose.Schema({
   password: String,
   rendaFixa: Number,
   accountType: { type: String, enum: ['Simples', 'Prime'], default: 'Simples' },
+  groupsCreated: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }],
 }, {
   timestamps: true,
 });

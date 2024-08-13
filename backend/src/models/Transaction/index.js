@@ -16,6 +16,10 @@ const TransactionSchema = new mongoose.Schema({
     enum: ['Fixo', 'Variável'] ,default: 'Variável', 
     required: true 
   },
+  category: { 
+    type: String, 
+    required: true 
+  },
   value: { 
     type: Number, 
     required: true 
