@@ -22,4 +22,16 @@ class GroupModel extends Group {
       'owner': owner,
     };
   }
+
+  GroupModel copyWith({
+    int? id,
+    String? name,
+    int? owner,
+  }) {
+    return GroupModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      owner: owner ?? this.owner,
+    );
+  }
 }

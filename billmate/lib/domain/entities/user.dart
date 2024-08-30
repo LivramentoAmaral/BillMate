@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 // ignore: constant_identifier_names
-enum AccountTypeEnum { Simple, Prime }
+enum AccountTypeEnum { Simple, Prime, defaultValue }
 
 class User extends Equatable  {
   final int id;
