@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:billmate/core/config.dart';
 import 'package:billmate/data/models/group_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class GroupService {
   final http.Client client;
@@ -9,10 +10,12 @@ class GroupService {
   GroupService(this.client);
 
   Future<Map<String, String>> _getHeaders() async {
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI1MTI4OTA5LCJpYXQiOjE3MjUwNDI1MDksImp0aSI6IjlkZmQ1NWE4YmQ3NTQyYjlhMzFhY2Q1ZTNiYzc5NzRlIiwidXNlcl9pZCI6MTF9.s8UESb6VZYCV36IK2UCPWvBJz9OruOAAm5vk-7g1p8o';
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token') ?? '';
+
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
+      'Authorization': 'Bearer $accessToken',
     };
   }
 

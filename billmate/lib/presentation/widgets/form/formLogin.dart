@@ -1,10 +1,15 @@
+// ignore: file_names
+import 'dart:io';
+
 import 'package:billmate/data/service/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginForm extends StatefulWidget {
+  const LoginForm({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _LoginFormState createState() => _LoginFormState();
 }
 
@@ -42,17 +47,17 @@ class _LoginFormState extends State<LoginForm> {
         await prefs.setString('refresh_token', tokenData['refresh']);
 
         // Exibir mensagem de sucesso
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Login bem-sucedido!'),
-            backgroundColor: Colors.green,
+            content: const Text('Login bem-sucedido!'),
+            // ignore: use_build_context_synchronously
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
 
-        // Navegar para outra tela se necessário
-        // Navigator.pushReplacementNamed(context, '/home');
-
-        // Se você precisar navegar para outra tela após o login, você pode descomentar a linha acima e substituir '/home' pela rota desejada.
+        // ignore: use_build_context_synchronously
+        Navigator.pushReplacementNamed(context, '/');
       } catch (e) {
         setState(() {
           _errorMessage = e.toString();
@@ -67,10 +72,9 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -83,12 +87,10 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                   labelText: 'Email',
                   filled: true,
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
+                  fillColor: theme.inputDecorationTheme.fillColor,
+                  focusedBorder: theme.inputDecorationTheme.focusedBorder,
+                  enabledBorder: theme.inputDecorationTheme.enabledBorder,
+                  border: theme.inputDecorationTheme.border,
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -104,12 +106,10 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   filled: true,
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
+                  fillColor: theme.inputDecorationTheme.fillColor,
+                  focusedBorder: theme.inputDecorationTheme.focusedBorder,
+                  enabledBorder: theme.inputDecorationTheme.enabledBorder,
+                  border: theme.inputDecorationTheme.border,
                 ),
                 obscureText: true,
                 validator: (value) {
@@ -119,31 +119,36 @@ class _LoginFormState extends State<LoginForm> {
                   return null;
                 },
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               if (_errorMessage != null)
                 Text(
                   _errorMessage!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  style: TextStyle(color: theme.colorScheme.error),
                 ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               _isLoading
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context)
-                            .elevatedButtonTheme
-                            .style
-                            ?.backgroundColor
+                        padding: const EdgeInsets.all(16.0),
+                        backgroundColor: theme
+                            .elevatedButtonTheme.style?.backgroundColor
                             ?.resolve({WidgetState.pressed}),
-                        foregroundColor: Theme.of(context)
-                            .elevatedButtonTheme
-                            .style
-                            ?.foregroundColor
+                        foregroundColor: theme
+                            .elevatedButtonTheme.style?.foregroundColor
                             ?.resolve({WidgetState.pressed}),
                       ),
-                      child: Text('Entrar'),
+                      child: const Text('Entrar'),
                     ),
+              const SizedBox(height: 20.0),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(
+                      context, '/register'); // Navegar para a tela de cadastro
+                },
+                child: const Text('Não tem uma conta? Cadastre-se'),
+              ),
             ],
           ),
         ),

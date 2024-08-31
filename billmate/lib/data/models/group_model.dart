@@ -7,6 +7,7 @@ class GroupModel extends Group {
     required super.owner,
   });
 
+  // Factory method to create a GroupModel from a Map
   factory GroupModel.fromMap(Map<String, dynamic> map) {
     return GroupModel(
       id: map['id'] as int? ?? 0,
@@ -15,6 +16,7 @@ class GroupModel extends Group {
     );
   }
 
+  // Method to convert a GroupModel instance to a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -23,6 +25,7 @@ class GroupModel extends Group {
     };
   }
 
+  // Method to create a copy of GroupModel with optional new values
   GroupModel copyWith({
     int? id,
     String? name,

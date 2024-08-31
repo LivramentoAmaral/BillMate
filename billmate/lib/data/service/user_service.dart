@@ -63,16 +63,11 @@ class UserService {
       body: json.encode(user.toMap()),
     );
 
-    // Verifique o status da resposta e trate possíveis erros
     if (response.statusCode == 200 || response.statusCode == 201) {
-      // Sucesso: o código 200 ou 201 geralmente indica que a requisição foi bem-sucedida
-      // Você pode processar a resposta se necessário
       print('Usuário criado com sucesso: ${response.body}');
     } else {
-      // Erro: o código de status indica um problema com a requisição
-      // Exiba o erro para depuração ou trate o erro de acordo
       throw Exception(
-          'Falha ao criar o usuário: ${response.statusCode} ${response.body}');
+          'Falha ao criar o usuário já existe um usuário com o mesmo e-mail');
     }
   }
 
@@ -100,6 +95,23 @@ class UserService {
 
     if (response.statusCode != 204) {
       throw Exception('Failed to delete user');
+    }
+  }
+
+  Future<UserModel> getCurrentUser() async {
+    final response = await client.get(
+      Uri.parse('${Config.baseUrl}users/me/'),
+      headers: await _getHeaders(),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return UserModel.fromMap(data);
+    } else {
+      throw Exception('Failed to load current user');
     }
   }
 }

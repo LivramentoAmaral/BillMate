@@ -1,11 +1,15 @@
+import 'package:billmate/core/theme/app_themes.dart';
+import 'package:flutter/material.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/user_service.dart';
 import 'package:billmate/domain/entities/accountTypeEnum.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 class RegistrationForm extends StatefulWidget {
+  const RegistrationForm({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _RegistrationFormState createState() => _RegistrationFormState();
 }
 
@@ -26,7 +30,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
   @override
   void initState() {
     super.initState();
-    _userService = UserService(http.Client());
+    _userService = UserService(Client());
   }
 
   Future<void> _register() async {
@@ -48,24 +52,29 @@ class _RegistrationFormState extends State<RegistrationForm> {
         await _userService.createUser(user);
 
         // Show success message
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Cadastro bem-sucedido!'),
+            content: const Text('Cadastro bem-sucedido!'),
+            // ignore: use_build_context_synchronously
             backgroundColor: Theme.of(context).colorScheme.primary,
-            duration: Duration(seconds: 2), // Adjust duration as needed
           ),
         );
 
-        // Show a confirmation dialog before redirecting
-        await Future.delayed(
-            Duration(seconds: 2)); // Delay to let the Snackbar be visible
+        // Delay to let the Snackbar be visible
+        await Future.delayed(const Duration(seconds: 2));
+
+        // Show dialog before redirecting
         showDialog(
+          // ignore: use_build_context_synchronously
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Cadastro Completo'),
+              title: const Text('Cadastro Completo'),
               content: Text(
-                  'Seu cadastro foi realizado com sucesso. Você será redirecionado para a tela de login.'),
+                'Seu cadastro foi realizado com sucesso. Você será redirecionado para a tela de login.',
+                style: AppThemes.lightTheme.textTheme.bodyLarge,
+              ),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
@@ -73,7 +82,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                     Navigator.pushReplacementNamed(
                         context, '/login'); // Redirect to login
                   },
-                  child: Text('OK'),
+                  child: const Text('OK'),
                 ),
               ],
             );
@@ -93,166 +102,158 @@ class _RegistrationFormState extends State<RegistrationForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Cadastro'),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        iconTheme: Theme.of(context).appBarTheme.iconTheme,
-        titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu email';
-                  }
-                  return null;
-                },
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            TextFormField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                focusedBorder:
+                    Theme.of(context).inputDecorationTheme.focusedBorder,
+                enabledBorder:
+                    Theme.of(context).inputDecorationTheme.enabledBorder,
+                border: Theme.of(context).inputDecorationTheme.border,
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Senha',
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua senha';
-                  }
-                  return null;
-                },
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira seu email';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16.0),
+            TextFormField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: 'Senha',
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                focusedBorder:
+                    Theme.of(context).inputDecorationTheme.focusedBorder,
+                enabledBorder:
+                    Theme.of(context).inputDecorationTheme.enabledBorder,
+                border: Theme.of(context).inputDecorationTheme.border,
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: InputDecoration(
-                  labelText: 'Confirmar Senha',
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, confirme sua senha';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'As senhas não coincidem';
-                  }
-                  return null;
-                },
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira sua senha';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16.0),
+            TextFormField(
+              controller: _confirmPasswordController,
+              decoration: InputDecoration(
+                labelText: 'Confirmar Senha',
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                focusedBorder:
+                    Theme.of(context).inputDecorationTheme.focusedBorder,
+                enabledBorder:
+                    Theme.of(context).inputDecorationTheme.enabledBorder,
+                border: Theme.of(context).inputDecorationTheme.border,
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nome',
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu nome';
-                  }
-                  return null;
-                },
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, confirme sua senha';
+                }
+                if (value != _passwordController.text) {
+                  return 'As senhas não coincidem';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16.0),
+            TextFormField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: 'Nome',
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                focusedBorder:
+                    Theme.of(context).inputDecorationTheme.focusedBorder,
+                enabledBorder:
+                    Theme.of(context).inputDecorationTheme.enabledBorder,
+                border: Theme.of(context).inputDecorationTheme.border,
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _fixedIncomeController,
-                decoration: InputDecoration(
-                  labelText: 'Renda Fixa',
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua renda fixa';
-                  }
-                  return null;
-                },
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira seu nome';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16.0),
+            TextFormField(
+              controller: _fixedIncomeController,
+              decoration: InputDecoration(
+                labelText: 'Renda Fixa',
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                focusedBorder:
+                    Theme.of(context).inputDecorationTheme.focusedBorder,
+                enabledBorder:
+                    Theme.of(context).inputDecorationTheme.enabledBorder,
+                border: Theme.of(context).inputDecorationTheme.border,
               ),
-              const SizedBox(height: 16.0),
-              DropdownButtonFormField<String>(
-                value: _accountType,
-                onChanged: (newValue) {
-                  setState(() {
-                    _accountType = newValue!;
-                  });
-                },
-                items: ['Simple', 'Prime'].map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type),
-                  );
-                }).toList(),
-                decoration: InputDecoration(
-                  labelText: 'Tipo de Conta',
-                  fillColor: Theme.of(context).inputDecorationTheme.fillColor,
-                  focusedBorder:
-                      Theme.of(context).inputDecorationTheme.focusedBorder,
-                  enabledBorder:
-                      Theme.of(context).inputDecorationTheme.enabledBorder,
-                  border: Theme.of(context).inputDecorationTheme.border,
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, selecione um tipo de conta';
-                  }
-                  return null;
-                },
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, insira sua renda fixa';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16.0),
+            DropdownButtonFormField<String>(
+              value: _accountType,
+              onChanged: (newValue) {
+                setState(() {
+                  _accountType = newValue!;
+                });
+              },
+              items: ['Simple', 'Prime'].map((type) {
+                return DropdownMenuItem(
+                  value: type,
+                  child: Text(type),
+                );
+              }).toList(),
+              decoration: InputDecoration(
+                labelText: 'Tipo de Conta',
+                fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+                focusedBorder:
+                    Theme.of(context).inputDecorationTheme.focusedBorder,
+                enabledBorder:
+                    Theme.of(context).inputDecorationTheme.enabledBorder,
+                border: Theme.of(context).inputDecorationTheme.border,
               ),
-              SizedBox(height: 20.0),
-              if (_errorMessage != null)
-                Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
-              SizedBox(height: 20.0),
-              _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _register,
-                      child: Text('Cadastrar'),
-                    ),
-            ],
-          ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor, selecione um tipo de conta';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20.0),
+            if (_errorMessage != null)
+              Text(
+                _errorMessage!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            const SizedBox(height: 20.0),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(
+                    onPressed: _register,
+                    child: const Text('Cadastrar'),
+                  ),
+          ],
         ),
       ),
     );
