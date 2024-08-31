@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:billmate/core/config.dart';
 import 'package:billmate/data/models/user_model.dart'; // Atualize para o caminho correto do seu modelo
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
   final http.Client client;
@@ -9,10 +10,12 @@ class UserService {
   UserService(this.client);
 
   Future<Map<String, String>> _getHeaders() async {
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI1MTI4OTA5LCJpYXQiOjE3MjUwNDI1MDksImp0aSI6IjlkZmQ1NWE4YmQ3NTQyYjlhMzFhY2Q1ZTNiYzc5NzRlIiwidXNlcl9pZCI6MTF9.s8UESb6VZYCV36IK2UCPWvBJz9OruOAAm5vk-7g1p8o';
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token') ?? '';
+
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
+      'Authorization': 'Bearer $accessToken',
     };
   }
 
@@ -53,14 +56,23 @@ class UserService {
   Future<void> createUser(UserModel user) async {
     final response = await client.post(
       Uri.parse('${Config.baseUrl}users/'),
-      headers: await _getHeaders(),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: json.encode(user.toMap()),
     );
 
-    print('Response status: ${response.statusCode}');
-
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create user');
+    // Verifique o status da resposta e trate possíveis erros
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // Sucesso: o código 200 ou 201 geralmente indica que a requisição foi bem-sucedida
+      // Você pode processar a resposta se necessário
+      print('Usuário criado com sucesso: ${response.body}');
+    } else {
+      // Erro: o código de status indica um problema com a requisição
+      // Exiba o erro para depuração ou trate o erro de acordo
+      throw Exception(
+          'Falha ao criar o usuário: ${response.statusCode} ${response.body}');
     }
   }
 
