@@ -27,6 +27,8 @@ class UserModel extends User {
     );
   }
 
+  get statusCode => null;
+
   Map<String, dynamic> toMap() {
     return {
       'email': email,

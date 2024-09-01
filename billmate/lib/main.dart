@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
             );
           } else {
             return MaterialPageRoute(
-              builder: (context) => Scaffold(
+              builder: (context) => const Scaffold(
                 body: Center(child: Text('Grupo não encontrado')),
               ),
             );

@@ -82,15 +82,26 @@ class GroupService {
   }
 
   Future<void> deleteGroup(int id) async {
-    final response = await client.delete(
-      Uri.parse('${Config.baseUrl}groups/$id/'),
-      headers: await _getHeaders(),
-    );
+    try {
+      final response = await client.delete(
+        Uri.parse('${Config.baseUrl}groups/$id/'),
+        headers: await _getHeaders(),
+      );
 
-    print('Response status: ${response.statusCode}');
+      print('Response status: ${response.statusCode}');
+      print('Response headers: ${response.headers}');
 
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete group');
+      if (response.statusCode == 204) {
+        // Sucesso: grupo deletado
+        return;
+      } else {
+        // Se a resposta não tem body, mas tem status de erro
+        throw Exception(
+            'Failed to delete group. Status code: ${response.statusCode}. No response body.');
+      }
+    } catch (e) {
+      print('Erro ao tentar deletar o grupo: $e');
+      throw Exception('Failed to delete group: $e');
     }
   }
 }

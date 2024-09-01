@@ -16,7 +16,6 @@ class GroupModel extends Group {
     );
   }
 
-  get groupId => null;
 
   // Method to convert a GroupModel instance to a Map
   Map<String, dynamic> toMap() {
