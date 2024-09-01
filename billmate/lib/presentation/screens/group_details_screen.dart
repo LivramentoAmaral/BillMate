@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/group_details_service.dart';
@@ -16,19 +18,39 @@ class GroupDetailsPage extends StatefulWidget {
 class _GroupDetailsPageState extends State<GroupDetailsPage> {
   late GroupDetailsService _groupDetailsService;
   late Future<List<UserModel>> _membersFuture;
-  late Future<UserModel> _currentUserFuture;
+  late Future<Uint8List> _qrCodeFuture;
 
   @override
   void initState() {
     super.initState();
     _groupDetailsService = GroupDetailsService(http.Client());
     _membersFuture = _groupDetailsService.getMembers(widget.groupId);
-    _currentUserFuture = _groupDetailsService.getCurrentUser();
+    _qrCodeFuture = _generateQRCode();
   }
 
-  void _deleteGroup() {
-    // Implementar a função de apagar grupo aqui.
-    // Mostrar um diálogo de confirmação antes de deletar.
+  Future<Uint8List> _generateQRCode() async {
+    try {
+      final response =
+          await _groupDetailsService.inviteByQRCode(widget.groupId);
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        final base64String = responseBody['qr_code'] as String?;
+        if (base64String != null && base64String.isNotEmpty) {
+          return base64Decode(base64String);
+        } else {
+          throw Exception('QR code string is empty');
+        }
+      } else {
+        final responseBody =
+            response.body.isNotEmpty ? jsonDecode(response.body) : {};
+        final errorDetail = responseBody['detail'] ?? 'Unknown error';
+        throw Exception(
+            'Failed to generate QR code. Status code: ${response.statusCode}, Details: $errorDetail');
+      }
+    } catch (e) {
+      throw Exception('Erro ao gerar QR Code: $e');
+    }
   }
 
   @override
@@ -42,19 +64,28 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // QR Code do Grupo (substitua pelo widget de QR Code que você deseja usar)
-            Center(
-              child: Container(
-                width: 150,
-                height: 150,
-                color: const Color.fromARGB(
-                    255, 67, 67, 67), // Placeholder para o QR Code
-                child: Center(child: Text('QR Code')),
-              ),
+            // QR Code do Grupo
+            FutureBuilder<Uint8List>(
+              future: _qrCodeFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Erro: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Erro ao gerar QR Code'));
+                } else {
+                  final qrCodeImage = snapshot.data!;
+                  return Center(
+                    child: Image.memory(
+                      qrCodeImage,
+                      width: 150,
+                      height: 150,
+                    ),
+                  );
+                }
+              },
             ),
-            const SizedBox(height: 16),
-            // Exibição do usuário atual
-
             const SizedBox(height: 16),
             // Lista de Membros
             FutureBuilder<List<UserModel>>(
@@ -93,25 +124,35 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                                 style: AppThemes.darkTheme.textTheme.bodySmall),
                             subtitle: Text(user.email ?? 'Sem email',
                                 style: AppThemes.darkTheme.textTheme.bodySmall),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.remove_circle,
+                                  color: Colors.red),
+                              onPressed: () async {
+                                try {
+                                  await _groupDetailsService.removeMember(
+                                      widget.groupId, user.id);
+                                  setState(() {
+                                    _membersFuture = _groupDetailsService
+                                        .getMembers(widget.groupId);
+                                  });
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content:
+                                            Text('Erro ao remover membro: $e')),
+                                  );
+                                }
+                              },
+                            ),
                           ),
                         );
                       }).toList(),
+                      const SizedBox(height: 16),
+                      // Botão de Apagar Grupo (visível apenas para o criador do grupo)
                     ],
                   );
                 }
               },
-            ),
-            const SizedBox(height: 16),
-            // Botão de Apagar Grupo
-            Center(
-              child: ElevatedButton(
-                onPressed: _deleteGroup,
-                child: const Text('Apagar Grupo'),
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.red,
-                ),
-              ),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:billmate/core/config.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:http/http.dart' as http;
@@ -120,19 +121,36 @@ class GroupDetailsService {
     }
   }
 
-  Future<void> inviteByQRCode(
-      int groupId, Map<String, dynamic> inviteData) async {
-    final response = await client.post(
-      Uri.parse('${Config.baseUrl}groups/$groupId/invite-qrcode/'),
-      headers: await _getHeaders(),
-      body: json.encode(inviteData),
-    );
+  Future<http.Response> inviteByQRCode(int groupId) async {
+    try {
+      final uri = Uri.parse('${Config.baseUrl}groups/$groupId/invite-qrcode/');
+      final response = await client.post(
+        uri,
+        headers: await _getHeaders(),
+      );
 
-    if (response.statusCode != 201) {
-      final responseBody =
-          response.body.isNotEmpty ? json.decode(response.body) : {};
-      throw Exception(
-          'Failed to send QR code invite: ${responseBody['detail'] ?? 'Unknown error'}');
+      if (response.statusCode == 200) {
+        try {
+          final responseBody = json.decode(response.body);
+          if (responseBody.containsKey('qr_code')) {
+            return response;
+          } else {
+            responseBody.toString();
+
+            throw Exception(
+                'Failed to send QR code invite: QR code not found in response.');
+          }
+        } catch (e) {
+          throw Exception('Failed to parse response JSON: $e');
+        }
+      } else {
+        final responseBody =
+            response.body.isNotEmpty ? json.decode(response.body) : {};
+        final errorDetail = responseBody['detail'] ?? 'Unknown error';
+        throw Exception('Failed to send QR code invite: $errorDetail');
+      }
+    } catch (e) {
+      throw Exception('Erro ao chamar o serviço de QR Code: $e');
     }
   }
 
@@ -183,14 +201,14 @@ class GroupDetailsService {
     }
   }
 
-  Future<void> removeMember(int groupId, int userId) async {
-    final response = await client.post(
+  Future<void> removeMember(int groupId, userId) async {
+    final response = await client.put(
       Uri.parse('${Config.baseUrl}groups/$groupId/remove-member/'),
       headers: await _getHeaders(),
       body: json.encode({'user_id': userId}),
     );
 
-    if (response.statusCode != 204) {
+    if (response.statusCode == 200) {
       final responseBody =
           response.body.isNotEmpty ? json.decode(response.body) : {};
       throw Exception(
@@ -214,4 +232,6 @@ class GroupDetailsService {
       throw Exception('Failed to load current user');
     }
   }
+
+  deleteGroup(int groupId) {}
 }
