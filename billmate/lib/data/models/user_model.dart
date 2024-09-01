@@ -9,7 +9,7 @@ class UserModel extends User {
     required super.accountType,
     super.avatar,
     super.password,
-    super.id, // Adicionado para suportar o campo id
+    super.id,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -23,20 +23,19 @@ class UserModel extends User {
           AccountTypeEnum.fromString(map['account_type'] as String? ?? ''),
       avatar: map['avatar'] as String?,
       password: map['password'] as String?,
-      id: map['id'] as int?, // Adicionado para suportar o campo id
+      id: map['id'] as int?,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'email': email ?? '',
-      'name': name ?? '',
+      'email': email,
+      'name': name,
       'fixed_income': fixedIncome?.toString() ?? '',
-      'account_type':
-          accountType.value, // Usando o value para representar o tipo de conta
+      'account_type': accountType.value, // Acessando a propriedade `value`
       'avatar': avatar ?? '',
-      'password': password ?? '', // Incluído no mapeamento
-      'id': id ?? 0, // Incluído no mapeamento
+      'password': password ?? '',
+      'id': id ?? 0,
     };
   }
 

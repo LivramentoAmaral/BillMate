@@ -102,4 +102,6 @@ class AppThemes {
       onSurface: Colors.black,
     ),
   );
+
+  static var colorScheme;
 }

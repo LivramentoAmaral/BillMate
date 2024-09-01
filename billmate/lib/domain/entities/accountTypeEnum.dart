@@ -1,22 +1,28 @@
-class AccountTypeEnum {
-  final String value;
+enum AccountTypeEnum {
+  Prime,
+  Simple,
+  Unknown; // Adicionado para lidar com valores inesperados
 
-  const AccountTypeEnum(this.value);
-
-  static const Personal = AccountTypeEnum('Simple');
-
-  static const Business = AccountTypeEnum('Prime');
-
-  static AccountTypeEnum fromString(String? value) {
-    switch (value) {
-      case 'Simple':
-        return Personal;
-
+  static AccountTypeEnum fromString(String accountType) {
+    switch (accountType) {
       case 'Prime':
-        return Business;
-
+        return AccountTypeEnum.Prime;
+      case 'Simple':
+        return AccountTypeEnum.Simple;
       default:
-        throw Exception('Invalid account type');
+        return AccountTypeEnum
+            .Unknown; // Retorna um valor padrão se o tipo for desconhecido
+    }
+  }
+
+  String get value {
+    switch (this) {
+      case AccountTypeEnum.Prime:
+        return 'Prime';
+      case AccountTypeEnum.Simple:
+        return 'Basic';
+      default:
+        return 'Unknown'; // Valor padrão para segurança
     }
   }
 }

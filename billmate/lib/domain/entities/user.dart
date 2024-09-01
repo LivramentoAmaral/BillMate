@@ -22,8 +22,11 @@ class User extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, email, name, password, fixedIncome, accountType, avatar];
+  List<Object?> get props =>
+      [id, email, name, password, fixedIncome, accountType, avatar];
 
   @override
   bool? get stringify => true;
+
+  toMap() {}
 }

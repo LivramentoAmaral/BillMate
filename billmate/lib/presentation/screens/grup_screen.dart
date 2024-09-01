@@ -9,7 +9,6 @@ class UserGroupsPage extends StatefulWidget {
   const UserGroupsPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _UserGroupsPageState createState() => _UserGroupsPageState();
 }
 
@@ -52,27 +51,21 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
   }
 
   Future<void> _createGroup() async {
-    // Exibe o modal para criar um novo grupo
     showDialog(
       context: context,
       builder: (context) {
         return CreateGroupDialog(onCreate: (name) async {
-          // Criação do grupo
           try {
-            // Supondo que você tenha um método em seu serviço para criar grupos
             await _groupService
                 .createGroup(GroupModel(name: name, id: 0, owner: 0));
-            // Atualiza a lista de grupos após a criação
             setState(() {
               _groupsFuture = _fetchGroups();
             });
           } catch (e) {
-            // ignore: use_build_context_synchronously
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Failed to create group: $e')),
             );
           }
-          // ignore: use_build_context_synchronously
           Navigator.of(context).pop();
         });
       },
@@ -126,7 +119,7 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
                               trailing: const Icon(Icons.arrow_forward_ios),
                               onTap: () => Navigator.pushNamed(
                                 context,
-                                '/groupDetails',
+                                '/groupdetails',
                                 arguments: group,
                               ),
                             ),
@@ -161,7 +154,6 @@ class CreateGroupDialog extends StatefulWidget {
   const CreateGroupDialog({super.key, required this.onCreate});
 
   @override
-  // ignore: library_private_types_in_public_api
   _CreateGroupDialogState createState() => _CreateGroupDialogState();
 }
 
@@ -179,7 +171,7 @@ class _CreateGroupDialogState extends State<CreateGroupDialog> {
       content: TextField(
         controller: _nameController,
         decoration: const InputDecoration(
-          labelText: 'nome do grupo',
+          labelText: 'Nome do grupo',
         ),
       ),
       actions: <Widget>[
@@ -196,7 +188,7 @@ class _CreateGroupDialogState extends State<CreateGroupDialog> {
               widget.onCreate(name);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Groupo deve ter um nome')),
+                const SnackBar(content: Text('Grupo deve ter um nome')),
               );
             }
           },
