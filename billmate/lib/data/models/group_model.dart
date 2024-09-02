@@ -16,6 +16,10 @@ class GroupModel extends Group {
     );
   }
 
+  get members => null;
+
+  get owner_name => null;
+
 
   // Method to convert a GroupModel instance to a Map
   Map<String, dynamic> toMap() {
@@ -38,4 +42,6 @@ class GroupModel extends Group {
       owner: owner ?? this.owner,
     );
   }
+
+  toJson() {}
 }

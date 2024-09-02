@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:billmate/core/config.dart';
+import 'package:billmate/data/models/group_details_model.dart';
+import 'package:billmate/data/models/group_model.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,7 +14,9 @@ class GroupDetailsService {
 
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final accessToken = prefs.getString('access_token') ?? '';
+    final accessToken = prefs.getString('access_token') ??
+        prefs.getString('refresh_token') ??
+        '';
 
     if (accessToken.isEmpty) {
       throw Exception('No access token found');
@@ -39,6 +43,23 @@ class GroupDetailsService {
           response.body.isNotEmpty ? json.decode(response.body) : {};
       throw Exception(
           'Failed to load members: ${responseBody['detail'] ?? 'Unknown error'}');
+    }
+  }
+
+   Future<GroupDetailsModel> getGroupById(int id) async {
+    final response = await client.get(
+      Uri.parse('${Config.baseUrl}groups/$id/'),
+      headers: await _getHeaders(),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return GroupDetailsModel.fromMap(data);
+    } else {
+      throw Exception('Failed to load group');
     }
   }
 

@@ -1,10 +1,11 @@
 import 'package:billmate/domain/entities/group.dart';
+import 'package:flutter/material.dart';
 import 'user.dart';
 
 class GroupDetails extends Group {
   final List<User> members;
   final String ownerName;
-  final String expenses;
+  final List<dynamic> expenses;
   final String totalExpenses;
   final String averageExpensesPerPerson;
   final String totalFixedIncome;

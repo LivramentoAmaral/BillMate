@@ -1,6 +1,7 @@
 // lib/data/services/api_service.dart
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   final http.Client client;
@@ -9,10 +10,18 @@ class ApiService {
 
   // ignore: unused_element
   Future<Map<String, String>> _getHeaders() async {
-    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI1MTI3MzczLCJpYXQiOjE3MjUwNDA5NzMsImp0aSI6Ijg5ZGNiODk3MjMzNjQwNmNiMmQ4NzEyNGE1NTRlODg2IiwidXNlcl9pZCI6MTF9.oGcU_6rOb6NaE9_NCClaZAgGOrUx4pFKDMQoLywIK_4'; 
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token') ??
+        prefs.getString('refresh_token') ??
+        '';
+
+    if (accessToken.isEmpty) {
+      throw Exception('No access token found');
+    }
+
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Token $token',
+      'Authorization': 'Bearer $accessToken',
     };
   }
 }

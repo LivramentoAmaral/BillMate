@@ -9,11 +9,13 @@ class GroupDetailsModel extends GroupDetails {
     required int owner,
     required List<User> members,
     required String ownerName,
-    required String expenses,
+    required List<dynamic> expenses, // Ajuste o tipo conforme necessário
     required String totalExpenses,
     required String averageExpensesPerPerson,
     required String totalFixedIncome,
     required DateTime createdAt,
+    required List<UserModel> membersModel,
+
   }) : super(
           id: id,
           name: name,
@@ -37,20 +39,21 @@ class GroupDetailsModel extends GroupDetails {
               .toList() ??
           [],
       ownerName: map['owner_name'] as String? ?? '',
-      expenses: map['expenses'] as String? ?? '',
-      totalExpenses: map['total_expenses'] as String? ?? '',
+      expenses: map['expenses'] as List<dynamic>? ??
+          [], // Ajuste o tipo conforme necessário
+      totalExpenses: (map['total_expenses'] as num?)?.toDouble()?.toString() ?? '0.0',
       averageExpensesPerPerson:
-          map['average_expenses_per_person'] as String? ?? '',
-      totalFixedIncome: map['total_fixed_income'] as String? ?? '',
+          (map['average_expenses_per_person'] as num?)?.toDouble()?.toString() ?? '0.0',
+      totalFixedIncome: (map['total_fixed_income'] as num?)?.toString() ?? '0.0',
       createdAt: DateTime.parse(
-          map['created_at'] as String? ?? DateTime.now().toIso8601String()),
+          map['created_at'] as String? ?? DateTime.now().toIso8601String()), membersModel: [],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'name': name,
+      'name': name, 
       'owner': owner,
       'members': members
           .map((user) => UserModel(
@@ -63,10 +66,10 @@ class GroupDetailsModel extends GroupDetails {
               .toMap())
           .toList(),
       'owner_name': ownerName,
-      'expenses': expenses,
+      'expenses': expenses, // Ajuste o tipo conforme necessário
       'total_expenses': totalExpenses,
-      'average_expenses_per_person': averageExpensesPerPerson,
-      'total_fixed_income': totalFixedIncome,
+      'average_expenses_per_person': double.parse(averageExpensesPerPerson),
+      'total_fixed_income': double.parse(totalFixedIncome),
       'created_at': createdAt.toIso8601String(),
     };
   }

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:billmate/core/config.dart';
-import 'package:billmate/data/models/user_model.dart'; // Atualize para o caminho correto do seu modelo
+import 'package:billmate/data/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,11 +11,14 @@ class UserService {
 
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final accessToken = prefs.getString('access_token') ?? '';
+    final accessToken = prefs.getString('access_token') ?? prefs.getString('refresh_token'); '';
+
+    print('Access token: $accessToken');
 
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $accessToken',
+      'Accept': 'application/json',
     };
   }
 
@@ -24,9 +27,6 @@ class UserService {
       Uri.parse('${Config.baseUrl}users/'),
       headers: await _getHeaders(),
     );
-
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -42,9 +42,6 @@ class UserService {
       headers: await _getHeaders(),
     );
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       return UserModel.fromMap(data);
@@ -56,29 +53,27 @@ class UserService {
   Future<void> createUser(UserModel user) async {
     final response = await client.post(
       Uri.parse('${Config.baseUrl}users/'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers: await _getHeaders(),
       body: json.encode(user.toMap()),
     );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print('Usuário criado com sucesso: ${response.body}');
+    if (response.statusCode == 201) {
+      print('User created successfully');
     } else {
-      throw Exception(
-          'Falha ao criar o usuário já existe um usuário com o mesmo e-mail');
+      throw Exception('Failed to create user');
     }
   }
 
   Future<void> updateUser(int id, UserModel user) async {
+    print('User: ${user.toMap()}');
+
+    print('Id: $id');
+
     final response = await client.put(
       Uri.parse('${Config.baseUrl}users/$id/'),
       headers: await _getHeaders(),
       body: json.encode(user.toMap()),
     );
-
-    print('Response status: ${response.statusCode}');
 
     if (response.statusCode != 200) {
       throw Exception('Failed to update user');
@@ -91,8 +86,6 @@ class UserService {
       headers: await _getHeaders(),
     );
 
-    print('Response status: ${response.statusCode}');
-
     if (response.statusCode != 204) {
       throw Exception('Failed to delete user');
     }
@@ -103,9 +96,6 @@ class UserService {
       Uri.parse('${Config.baseUrl}users/me/'),
       headers: await _getHeaders(),
     );
-
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

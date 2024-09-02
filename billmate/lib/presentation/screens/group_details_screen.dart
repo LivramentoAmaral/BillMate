@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:billmate/core/theme/app_themes.dart';
+import 'package:billmate/data/models/group_details_model.dart';
 import 'package:billmate/data/models/group_model.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/group_details_service.dart';
 import 'package:billmate/data/service/group_service.dart';
 import 'package:billmate/data/service/user_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -22,10 +24,10 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
   late GroupDetailsService _groupDetailsService;
   late GroupService _groupService;
   late UserService _userService;
-  late Future<GroupModel> _groupFuture;
-  late Future<List<UserModel>> _membersFuture;
-  late Future<Uint8List> _qrCodeFuture;
+  late Future<GroupDetailsModel> _groupFuture;
   late Future<UserModel> _currentUserFuture;
+  UserModel? _currentUser;
+  bool _isOwner = false;
 
   @override
   void initState() {
@@ -34,33 +36,20 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
     _groupService = GroupService(http.Client());
     _userService = UserService(http.Client());
     _groupFuture = _groupService.getGroupById(widget.groupId);
-    _membersFuture = _groupDetailsService.getMembers(widget.groupId);
-    _qrCodeFuture = _generateQRCode();
     _currentUserFuture = _userService.getCurrentUser(); // Fetch current user
+    _checkOwnership();
   }
 
-  Future<Uint8List> _generateQRCode() async {
+  Future<void> _checkOwnership() async {
     try {
-      final response =
-          await _groupDetailsService.inviteByQRCode(widget.groupId);
-
-      if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        final base64String = responseBody['qr_code'] as String?;
-        if (base64String != null && base64String.isNotEmpty) {
-          return base64Decode(base64String);
-        } else {
-          throw Exception('QR code string is empty');
-        }
-      } else {
-        final responseBody =
-            response.body.isNotEmpty ? jsonDecode(response.body) : {};
-        final errorDetail = responseBody['detail'] ?? 'Unknown error';
-        throw Exception(
-            'Failed to generate QR code. Status code: ${response.statusCode}, Details: $errorDetail');
-      }
+      final group = await _groupFuture;
+      final currentUser = await _currentUserFuture;
+      setState(() {
+        _currentUser = currentUser;
+        _isOwner = currentUser.id == group.owner;
+      });
     } catch (e) {
-      throw Exception('Erro ao gerar QR Code: $e');
+      print('Erro ao verificar a propriedade: $e');
     }
   }
 
@@ -69,7 +58,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
+          title: Text(
             'Deseja remover o membro?',
             style: TextStyle(
               color: Colors.black,
@@ -77,17 +66,17 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
             ),
           ),
           content: Text('Tem certeza de que deseja remover ${user.name}?',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
               )),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
+              child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Remover'),
+              child: Text('Remover'),
             ),
           ],
         );
@@ -98,7 +87,8 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
       try {
         await _groupDetailsService.removeMember(widget.groupId, user.id);
         setState(() {
-          _membersFuture = _groupDetailsService.getMembers(widget.groupId);
+          _groupFuture = _groupService.getGroupById(widget.groupId)
+              as Future<GroupDetailsModel>;
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${user.name} removido com sucesso.')),
@@ -116,14 +106,14 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
+          title: Text(
             'Deseja apagar o grupo?',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),
-          content: const Text(
+          content: Text(
               'Tem certeza de que deseja apagar este grupo? Esta ação não pode ser desfeita.',
               style: TextStyle(
                 color: Colors.black,
@@ -131,11 +121,11 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancelar'),
+              child: Text('Cancelar'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Apagar'),
+              child: Text('Apagar'),
             ),
           ],
         );
@@ -147,7 +137,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         await _groupService.deleteGroup(widget.groupId);
         Navigator.of(context).pop(); // Voltar para a tela anterior
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Grupo apagado com sucesso.')),
+          SnackBar(content: Text('Grupo apagado com sucesso.')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -157,42 +147,64 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
     }
   }
 
+  Future<Uint8List> _generateQRCode() async {
+    try {
+      final response =
+          await _groupDetailsService.inviteByQRCode(widget.groupId);
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        final base64String = responseBody['qr_code'] as String?;
+        if (base64String != null && base64String.isNotEmpty) {
+          return base64Decode(base64String);
+        } else {
+          throw Exception('QR Code inválido');
+        }
+      } else {
+        throw Exception('Falha ao gerar QR Code');
+      }
+    } catch (e) {
+      print('Erro ao gerar QR Code: $e');
+      rethrow; // Propaga a exceção para ser capturada no FutureBuilder
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: FutureBuilder<GroupModel>(
+        title: FutureBuilder<GroupDetailsModel>(
           future: _groupFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Text('Carregando...');
+              return Text('Carregando...');
             } else if (snapshot.hasError) {
-              return const Text('Erro ao carregar grupo');
-            } else if (!snapshot.hasData) {
-              return const Text('Grupo não encontrado');
-            } else {
-              final groupName = snapshot.data!.name ?? 'Sem nome';
+              return Text('Erro ao carregar grupo');
+            } else if (snapshot.hasData && snapshot.data != null) {
+              final groupName = snapshot.data?.name ?? 'Sem nome';
               return Text(groupName);
+            } else {
+              return Text('Grupo não encontrado');
             }
           },
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // QR Code do Grupo
             FutureBuilder<Uint8List>(
-              future: _qrCodeFuture,
+              future: _generateQRCode(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Erro: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Erro ao gerar QR Code'));
-                } else {
+                } else if (snapshot.hasData &&
+                    snapshot.data != null &&
+                    snapshot.data!.isNotEmpty) {
                   final qrCodeImage = snapshot.data!;
                   return Column(
                     children: [
@@ -203,8 +215,8 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                           height: 150,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Center(
+                      SizedBox(height: 8),
+                      Center(
                         child: Text(
                           'Escaneie este QR Code para entrar no grupo',
                           textAlign: TextAlign.center,
@@ -212,99 +224,74 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                       ),
                     ],
                   );
+                } else {
+                  return Center(child: Text('Erro ao gerar QR Code'));
                 }
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // Lista de Membros
-            FutureBuilder<List<UserModel>>(
-              future: _membersFuture,
+            FutureBuilder<GroupDetailsModel>(
+              future: _groupFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Erro: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Nenhum membro encontrado'));
-                } else {
-                  final members = snapshot.data!;
-                  return FutureBuilder<UserModel>(
-                    future: _currentUserFuture,
-                    builder: (context, currentUserSnapshot) {
-                      if (currentUserSnapshot.connectionState ==
-                          ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (currentUserSnapshot.hasError) {
-                        return Center(
-                            child: Text('Erro: ${currentUserSnapshot.error}'));
-                      } else if (!currentUserSnapshot.hasData) {
-                        return const Center(
-                            child: Text('Usuário não encontrado'));
-                      } else {
-                        final currentUser = currentUserSnapshot.data!;
-                        final groupOwnerId = members
-                            .first.id; // Assume the first member is the owner
-                        final isOwner = currentUser.id == groupOwnerId;
+                } else if (snapshot.hasData && snapshot.data != null) {
+                  final group = snapshot.data!;
+                  final members = group.members ?? [];
+                  final ownerId = group.owner;
 
-                        return Column(
-                          children: [
-                            Card(
-                              color: AppThemes.darkTheme.colorScheme.surface,
-                              child: ListTile(
-                                leading: const Icon(Icons.star,
-                                    color: Colors.orange),
-                                title: Text(members.first.name ?? 'Sem nome',
-                                    style: AppThemes
-                                        .darkTheme.textTheme.bodySmall),
-                                subtitle: Text(
-                                    members.first.email ?? 'Sem email',
-                                    style: AppThemes
-                                        .darkTheme.textTheme.bodySmall),
+                  return Column(
+                    children: [
+                      if (members.isNotEmpty)
+                        ...members.map((user) {
+                          final isOwner = user.id == ownerId;
+
+                          return Card(
+                            color: Theme.of(context).colorScheme.surface,
+                            child: ListTile(
+                              leading: Icon(
+                                isOwner ? Icons.star : Icons.person,
+                                color: isOwner ? Colors.orange : Colors.blue,
                               ),
+                              title: Text(user.name ?? 'Sem nome',
+                                  style:
+                                      AppThemes.darkTheme.textTheme.bodySmall),
+                              subtitle: Text(user.email ?? 'Sem email',
+                                  style:
+                                      AppThemes.darkTheme.textTheme.bodySmall),
+                              trailing: _isOwner && !isOwner
+                                  ? IconButton(
+                                      icon: Icon(Icons.remove_circle,
+                                          color: Colors.red),
+                                      onPressed: () => _confirmRemoveMember(
+                                          user as UserModel),
+                                    )
+                                  : null,
                             ),
-                            ...members
-                                .where((m) => m.id != groupOwnerId)
-                                .map((user) {
-                              return Card(
-                                color: Theme.of(context).colorScheme.surface,
-                                child: ListTile(
-                                  leading: const Icon(Icons.person,
-                                      color: Colors.blue),
-                                  title: Text(user.name ?? 'Sem nome',
-                                      style: AppThemes
-                                          .darkTheme.textTheme.bodySmall),
-                                  subtitle: Text(user.email ?? 'Sem email',
-                                      style: AppThemes
-                                          .darkTheme.textTheme.bodySmall),
-                                  trailing: isOwner
-                                      ? IconButton(
-                                          icon: const Icon(Icons.remove_circle,
-                                              color: Colors.red),
-                                          onPressed: () =>
-                                              _confirmRemoveMember(user),
-                                        )
-                                      : null,
-                                ),
-                              );
-                            }).toList(),
-                            const SizedBox(height: 16),
-                            // Botão de Apagar Grupo (visível apenas para o criador do grupo)
-                            Visibility(
-                              visible: isOwner,
-                              child: ElevatedButton(
-                                onPressed: _confirmDeleteGroup,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Colors.red, // Cor de fundo do botão
-                                ),
-                                child: const Text('Apagar Grupo'),
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
+                          );
+                        }).toList()
+                      else
+                        Center(child: Text('Nenhum membro encontrado')),
+                      SizedBox(height: 16),
+                      // Botão de Apagar Grupo (visível apenas para o criador do grupo)
+                      Visibility(
+                        visible: _isOwner,
+                        child: ElevatedButton(
+                          onPressed: _confirmDeleteGroup,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Colors.red, // Cor de fundo do botão
+                          ),
+                          child: Text('Apagar Grupo'),
+                        ),
+                      ),
+                    ],
                   );
+                } else {
+                  return Center(child: Text('Nenhum membro encontrado'));
                 }
               },
             ),
@@ -312,5 +299,14 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(DiagnosticsProperty<Future<GroupDetailsModel>>(
+        '_groupFuture', _groupFuture));
+    properties.add(DiagnosticsProperty<Future<UserModel>>(
+        '_currentUserFuture', _currentUserFuture));
   }
 }

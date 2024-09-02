@@ -5,6 +5,7 @@ import 'package:billmate/data/service/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -45,6 +46,8 @@ class _LoginFormState extends State<LoginForm> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', tokenData['access']);
         await prefs.setString('refresh_token', tokenData['refresh']);
+
+        
 
         // Exibir mensagem de sucesso
         // ignore: use_build_context_synchronously

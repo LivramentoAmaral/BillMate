@@ -29,4 +29,6 @@ class User extends Equatable {
   bool? get stringify => true;
 
   toMap() {}
+
+  static fromMap(Map<String, dynamic> item) {}
 }

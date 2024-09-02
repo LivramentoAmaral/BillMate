@@ -1,92 +1,12 @@
 import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/user_service.dart';
-import 'package:billmate/presentation/widgets/buttonNavbar.dart';
+import 'package:billmate/domain/entities/accountTypeEnum.dart';
+import 'package:billmate/presentation/widgets/fixedModal.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class FixedIncomeModal extends StatefulWidget {
-  final UserModel user;
-  final Function(UserModel) onUpdate;
-
-  FixedIncomeModal({required this.user, required this.onUpdate});
-
-  @override
-  _FixedIncomeModalState createState() => _FixedIncomeModalState();
-}
-
-class _FixedIncomeModalState extends State<FixedIncomeModal> {
-  late TextEditingController _fixedIncomeController;
-  late UserService _userService;
-
-  @override
-  void initState() {
-    super.initState();
-    _fixedIncomeController =
-        TextEditingController(text: widget.user.fixedIncome.toString());
-    _userService = UserService(Client());
-  }
-
-  @override
-  void dispose() {
-    _fixedIncomeController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _updateFixedIncome() async {
-    try {
-      final updatedUser = widget.user.copyWith(
-        fixedIncome: double.parse(_fixedIncomeController.text),
-      );
-      await _userService.updateUser(updatedUser.id!, updatedUser);
-      widget.onUpdate(updatedUser);
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Atualização realizada com sucesso')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao atualizar o valor da renda fixa')),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
-      title: Text('Editar Renda Fixa'),
-      content: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            TextField(
-              controller: _fixedIncomeController,
-              decoration: InputDecoration(
-                labelText: 'Renda Fixa',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _updateFixedIncome,
-              child: Text('Atualizar'),
-            ),
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancel'),
-        ),
-      ],
-    );
-  }
-}
+import 'package:billmate/presentation/widgets/buttonNavbar.dart'; // Adjust the import according to your project structure
 
 class HomePage extends StatefulWidget {
   @override
@@ -102,28 +22,41 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _userService = UserService(Client());
-    _userFuture = _fetchCurrentUser();
+    _userService = UserService(http.Client());
+    _userFuture = _checkAndFetchCurrentUser();
   }
 
-  Future<UserModel> _fetchCurrentUser() async {
+  Future<UserModel> _checkAndFetchCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('access_token');
+  
+    if (accessToken == null || accessToken.isEmpty || accessToken == '') {
+      // No access token found, redirect to login
+      Navigator.pushReplacementNamed(context, '/login');
+      return const UserModel(email: '', name: '', accountType: AccountTypeEnum.Unknown); // Replace 'AccountTypeEnum.none' with the appropriate value.
+    }
+  
     try {
       final user = await _userService.getCurrentUser();
       if (mounted) {
         setState(() {
           _isLoading = false;
+          _errorMessage = null; // Clear any previous error messages
         });
       }
       return user;
     } catch (e) {
+      print('Erro ao buscar usuário: $e'); // Adicionando print para depuração
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Exception: Failed to load current user';
+          _errorMessage =
+              'Falha ao carregar o usuário: ${e.toString()}'; // Mensagem de erro detalhada
         });
       }
-      throw Exception('Failed to load current user');
     }
+  
+    throw Exception('Failed to fetch current user.'); // Add a throw statement at the end to ensure a non-null value is always returned
   }
 
   Future<void> _logout() async {
@@ -181,9 +114,11 @@ class _HomePageState extends State<HomePage> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
+                      print(
+                          'Erro na FutureBuilder: ${snapshot.error}'); // Adicionando print para depuração
                       return Center(
                         child: Text(
-                          'Error: ${snapshot.error}',
+                          'Erro: ${snapshot.error}',
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -198,7 +133,7 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              'Name: ${user.name}',
+                              'Nome: ${user.name}',
                               style: Theme.of(context).textTheme.displayLarge,
                             ),
                             SizedBox(height: 8.0),
@@ -208,19 +143,19 @@ class _HomePageState extends State<HomePage> {
                             ),
                             SizedBox(height: 8.0),
                             Text(
-                              'Fixed Income: ${user.fixedIncome}',
+                              'Renda Fixa: ${user.fixedIncome}',
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
                             SizedBox(height: 16.0),
                             ElevatedButton(
                               onPressed: () => _showFixedIncomeModal(user),
-                              child: Text('Edit Fixed Income'),
+                              child: Text('Editar Renda Fixa'),
                             ),
                           ],
                         ),
                       );
                     } else {
-                      return Center(child: Text('No data available'));
+                      return Center(child: Text('Nenhum dado disponível'));
                     }
                   },
                 ),
@@ -229,7 +164,7 @@ class _HomePageState extends State<HomePage> {
         onItemTapped: (index) {
           switch (index) {
             case 0:
-              Navigator.pushNamed(context, '/balance');
+              Navigator.pushNamed(context, '/');
               break;
             case 1:
               Navigator.pushNamed(context, '/groups');

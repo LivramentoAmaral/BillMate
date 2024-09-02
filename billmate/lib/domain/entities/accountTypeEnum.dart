@@ -20,7 +20,7 @@ enum AccountTypeEnum {
       case AccountTypeEnum.Prime:
         return 'Prime';
       case AccountTypeEnum.Simple:
-        return 'Basic';
+        return 'Simple';
       default:
         return 'Unknown'; // Valor padrão para segurança
     }

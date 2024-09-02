@@ -21,8 +21,9 @@ class MyApp extends StatelessWidget {
       title: 'BillMate',
       theme: AppThemes.lightTheme, // Tema claro
       darkTheme: AppThemes.darkTheme, // Tema escuro
-      themeMode: ThemeMode.system, // Usa o tema conforme a configuração do sistema
-      initialRoute: '/',
+      themeMode:
+          ThemeMode.system, // Usa o tema conforme a configuração do sistema
+      initialRoute: '/', // Rota inicial
 
       // Configura as rotas
       routes: {

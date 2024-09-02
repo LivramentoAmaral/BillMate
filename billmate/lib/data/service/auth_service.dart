@@ -38,7 +38,8 @@ class AuthService {
     if (response.statusCode == 200) {
       return parsedResponse;
     } else {
-      throw Exception('Failed to login: ${parsedResponse['detail'] ?? 'Unknown error'}');
+      throw Exception(
+          'Failed to login: ${parsedResponse['detail'] ?? 'Unknown error'}');
     }
   }
 }

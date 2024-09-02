@@ -104,4 +104,6 @@ class AppThemes {
   );
 
   static var colorScheme;
+
+  static var listTileTitle;
 }
