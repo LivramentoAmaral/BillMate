@@ -1,5 +1,7 @@
 import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/group_model.dart';
+import 'package:billmate/presentation/screens/expensesList_screem.dart';
+import 'package:billmate/presentation/screens/expenses_screen.dart';
 import 'package:billmate/presentation/screens/group_details_screen.dart';
 import 'package:billmate/presentation/screens/grup_screen.dart';
 import 'package:billmate/presentation/screens/home_screen.dart';
@@ -31,6 +33,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const SignupScreen(),
         '/groups': (context) => const UserGroupsPage(),
+        '/listexpenses': (context) => ExpenseListScreen(),
+        '/expenses': (context) => AddExpenseScreen(),
       },
 
       // Configuração da rota onGenerateRoute para passar argumentos

@@ -11,7 +11,9 @@ class UserService {
 
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final accessToken = prefs.getString('access_token') ?? prefs.getString('refresh_token'); '';
+    final accessToken =
+        prefs.getString('access_token') ?? prefs.getString('refresh_token');
+    '';
 
     print('Access token: $accessToken');
 
@@ -53,9 +55,13 @@ class UserService {
   Future<void> createUser(UserModel user) async {
     final response = await client.post(
       Uri.parse('${Config.baseUrl}users/'),
-      headers: await _getHeaders(),
+      headers: {
+        'Content-Type': 'application/json', // Adicione este cabeçalho
+      },
       body: json.encode(user.toMap()),
     );
+
+    print('Response status: ${response.body}');
 
     if (response.statusCode == 201) {
       print('User created successfully');
@@ -63,7 +69,7 @@ class UserService {
       throw Exception('Failed to create user');
     }
   }
-
+                                             
   Future<void> updateUser(int id, UserModel user) async {
     print('User: ${user.toMap()}');
 

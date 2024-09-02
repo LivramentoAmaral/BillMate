@@ -44,7 +44,7 @@ class BottomNavBar extends StatelessWidget {
             break;
 
           case 2:
-            Navigator.pushNamed(context, '/profile');
+            Navigator.pushNamed(context, '/listexpenses');
             break;
         }
         onItemTapped(index);

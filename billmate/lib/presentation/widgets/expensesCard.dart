@@ -1,9 +1,9 @@
+import 'package:billmate/data/models/expense_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'expense.dart'; // Certifique-se de importar o modelo de despesa
 
 class ExpenseCard extends StatelessWidget {
-  final Expense expense;
+  final ExpenseModel expense;
 
   const ExpenseCard({
     Key? key,
@@ -13,7 +13,7 @@ class ExpenseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final DateFormat dateFormatter = DateFormat('dd/MM/yyyy');
-    final String formattedDate = dateFormatter.format(expense.dateSpent);
+    final String formattedDate = dateFormatter.format(expense.dateSpent as DateTime);
 
     return Card(
       elevation: 4.0,
@@ -36,7 +36,7 @@ class ExpenseCard extends StatelessWidget {
           NumberFormat.simpleCurrency().format(expense.amount),
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: expense.amount < 0 ? Colors.red : Colors.green,
+            color: double.parse(expense.amount) < 0 ? Colors.red : Colors.green,
           ),
         ),
       ),

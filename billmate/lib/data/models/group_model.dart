@@ -16,12 +16,6 @@ class GroupModel extends Group {
     );
   }
 
-  get members => null;
-
-  get owner_name => null;
-
-
-  // Method to convert a GroupModel instance to a Map
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -30,7 +24,6 @@ class GroupModel extends Group {
     };
   }
 
-  // Method to create a copy of GroupModel with optional new values
   GroupModel copyWith({
     int? id,
     String? name,

@@ -29,13 +29,17 @@ class _HomePageState extends State<HomePage> {
   Future<UserModel> _checkAndFetchCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     final accessToken = prefs.getString('access_token');
-  
+
     if (accessToken == null || accessToken.isEmpty || accessToken == '') {
       // No access token found, redirect to login
       Navigator.pushReplacementNamed(context, '/login');
-      return const UserModel(email: '', name: '', accountType: AccountTypeEnum.Unknown); // Replace 'AccountTypeEnum.none' with the appropriate value.
+      return const UserModel(
+          email: '',
+          name: '',
+          accountType: AccountTypeEnum
+              .Unknown); // Replace 'AccountTypeEnum.none' with the appropriate value.
     }
-  
+
     try {
       final user = await _userService.getCurrentUser();
       if (mounted) {
@@ -55,8 +59,9 @@ class _HomePageState extends State<HomePage> {
         });
       }
     }
-  
-    throw Exception('Failed to fetch current user.'); // Add a throw statement at the end to ensure a non-null value is always returned
+
+    throw Exception(
+        'Failed to fetch current user.'); // Add a throw statement at the end to ensure a non-null value is always returned
   }
 
   Future<void> _logout() async {
@@ -170,7 +175,7 @@ class _HomePageState extends State<HomePage> {
               Navigator.pushNamed(context, '/groups');
               break;
             case 2:
-              Navigator.pushNamed(context, '/profile');
+              Navigator.pushNamed(context, '/listexpenses');
               break;
           }
         },

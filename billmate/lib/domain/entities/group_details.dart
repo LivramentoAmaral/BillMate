@@ -1,5 +1,4 @@
 import 'package:billmate/domain/entities/group.dart';
-import 'package:flutter/material.dart';
 import 'user.dart';
 
 class GroupDetails extends Group {
