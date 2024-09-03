@@ -82,6 +82,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
       try {
         final expenseService = ExpenseService(
             http.Client()); // Crie uma instância do serviço de despesas
+        // ignore: unused_local_variable
         final createdExpense = await expenseService.createExpense(expense);
 
         if (mounted) {

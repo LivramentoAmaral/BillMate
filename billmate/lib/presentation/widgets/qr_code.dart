@@ -10,7 +10,8 @@ import 'package:billmate/data/models/user_model.dart';
 class QRCodeScanner extends StatefulWidget {
   final Function(int) onQRCodeScanned;
 
-  QRCodeScanner({required this.onQRCodeScanned, Key? key}) : super(key: key);
+  const QRCodeScanner({required this.onQRCodeScanned, Key? key})
+      : super(key: key);
 
   @override
   _QRCodeScannerState createState() => _QRCodeScannerState();
@@ -40,6 +41,7 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final user = UserModel.fromMap(data);
+        print('User ID: ${user.id}');
         return user.id!;
       } else {
         throw Exception('Failed to load current user');
@@ -50,12 +52,9 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   }
 
   Future<void> _addMember(int groupId, int userId) async {
-    print("Iniciando adição de membro ao grupo");
-
-    print("Group ID: $groupId");
-    print('User ID: $userId');
-
     try {
+      print('groupId: $groupId');
+      print('userId: $userId');
       final prefs = await SharedPreferences.getInstance();
       final accessToken = prefs.getString('access_token') ?? '';
 
@@ -63,11 +62,7 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
         throw Exception('No access token found');
       }
 
-      final memberData = {
-        'user': userId
-      }; // Certifique-se de que isso está correto
-
-      print('Dados do membro: $memberData');
+      final memberData = {'user': userId};
 
       final response = await http.post(
         Uri.parse('${Config.baseUrl}groups/$groupId/add-member/'),
@@ -78,23 +73,18 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
         body: json.encode(memberData),
       );
 
-      print('Resposta da API - Status: ${response.statusCode}');
-      print('Resposta da API - Corpo: ${response.body}');
-
       if (response.statusCode == 404) {
-        throw Exception(
-            'Não foi possível encontrar o grupo com o ID $groupId.');
+        throw Exception('Group not found with ID $groupId.');
       }
 
       if (response.statusCode != 201) {
         final responseBody =
             response.body.isNotEmpty ? json.decode(response.body) : {};
         throw Exception(
-            'Falha ao adicionar membro: ${responseBody['detail'] ?? 'Erro desconhecido'}');
+            'Failed to add member: ${responseBody['detail'] ?? 'Unknown error'}');
       }
     } catch (e) {
-      print('Erro no bloco try: $e');
-      throw Exception('Falha ao adicionar membro: $e');
+      throw Exception('Failed to add member: $e');
     }
   }
 
@@ -102,50 +92,41 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Escanear QR Code'),
+        title: const Text('Scan QR Code'),
       ),
       body: QRView(
         key: _qrKey,
         onQRViewCreated: (QRViewController controller) {
           controller.scannedDataStream.listen((scanData) async {
             final qrCode = scanData.code!;
-            print("QR Code captured: $qrCode");
-
             try {
-              // Corrigido para manipular o JSON corretamente
               final jsonString = qrCode.replaceAll("'", '"');
               final decodedData = json.decode(jsonString);
-              print("Decoded JSON: $decodedData");
 
               if (decodedData is Map<String, dynamic> &&
                   decodedData.containsKey('group_id')) {
                 final groupId = decodedData['group_id'];
 
                 if (groupId is int) {
-                  print("Group ID: $groupId");
-
                   final userId = await _getCurrentUserId();
-                  print("User ID: $userId");
-
                   await _addMember(groupId, userId);
 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Membro adicionado com sucesso')),
+                    const SnackBar(content: Text('Member added successfully')),
                   );
 
                   Navigator.of(context).pop();
                 } else {
-                  throw FormatException('O campo "group_id" não é um inteiro.');
+                  throw FormatException(
+                      'The "group_id" field is not an integer.');
                 }
               } else {
                 throw FormatException(
-                    'QR Code JSON não contém o campo "group_id" ou está em um formato inválido.');
+                    'QR Code JSON does not contain "group_id" or is in an invalid format.');
               }
             } catch (e) {
-              print("Erro no bloco try: $e");
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erro ao adicionar membro: $e')),
+                SnackBar(content: Text('Error adding member: $e')),
               );
             }
           });

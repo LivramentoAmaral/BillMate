@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:billmate/core/config.dart';
 import 'package:billmate/data/models/group_model.dart';
+import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/group_service.dart';
 import 'package:billmate/presentation/widgets/buttonNavbar.dart';
+import 'package:billmate/presentation/widgets/qr_code.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,10 +71,99 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
               SnackBar(content: Text('Failed to create group: $e')),
             );
           }
+          // ignore: use_build_context_synchronously
           Navigator.of(context).pop();
         });
       },
     );
+  }
+
+  void _openQRCodeScanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QRCodeScanner(
+          onQRCodeScanned: (groupId) async {
+            try {
+              final userId = await _getCurrentUserId();
+              await _addMember(groupId, userId);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Membro adicionado com sucesso')),
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Erro ao adicionar membro: $e')),
+              );
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<int> _getCurrentUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('access_token') ?? '';
+
+      if (accessToken.isEmpty) {
+        throw Exception('No access token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('${Config.baseUrl}users/me/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final user = UserModel.fromMap(data);
+        return user.id!;
+      } else {
+        throw Exception('Failed to load current user');
+      }
+    } catch (e) {
+      throw Exception('Failed to get user ID: $e');
+    }
+  }
+
+  Future<void> _addMember(int groupId, int userId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final accessToken = prefs.getString('access_token') ?? '';
+
+      if (accessToken.isEmpty) {
+        throw Exception('No access token found');
+      }
+
+      final memberData = {'user': userId};
+
+      final response = await http.post(
+        Uri.parse('${Config.baseUrl}groups/$groupId/add-member/'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: json.encode(memberData),
+      );
+
+      if (response.statusCode == 404) {
+        throw Exception(
+            'Não foi possível encontrar o grupo com o ID $groupId.');
+      }
+
+      if (response.statusCode != 201) {
+        final responseBody =
+            response.body.isNotEmpty ? json.decode(response.body) : {};
+        throw Exception(
+            'Falha ao adicionar membro: ${responseBody['detail'] ?? 'Erro desconhecido'}');
+      }
+    } catch (e) {
+      throw Exception('Falha ao adicionar membro: $e');
+    }
   }
 
   @override
@@ -131,13 +225,39 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
                     }
                   },
                 ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createGroup,
-        label: const Text('Adicionar Grupo'),
-        icon: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Escolha uma Ação'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.add),
+                    title: const Text('Adicionar Grupo'),
+                    onTap: () {
+                      Navigator.of(context).pop(); // Fechar o dialog
+                      _createGroup();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.qr_code_scanner),
+                    title: const Text('Escanear QR Code'),
+                    onTap: () {
+                      Navigator.of(context).pop(); // Fechar o dialog
+                      _openQRCodeScanner();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        child: const Icon(Icons.menu),
         backgroundColor: Theme.of(context).primaryColor,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: BottomNavBar(
         selectedIndex: 1,
         onItemTapped: (index) {

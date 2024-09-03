@@ -1,12 +1,11 @@
-import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/user_service.dart';
 import 'package:billmate/domain/entities/accountTypeEnum.dart';
+import 'package:billmate/presentation/widgets/buttonNavbar.dart'; // Ajuste o import conforme a estrutura do seu projeto
 import 'package:billmate/presentation/widgets/fixedModal.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:billmate/presentation/widgets/buttonNavbar.dart'; // Adjust the import according to your project structure
 
 class HomePage extends StatefulWidget {
   @override
@@ -31,13 +30,11 @@ class _HomePageState extends State<HomePage> {
     final accessToken = prefs.getString('access_token');
 
     if (accessToken == null || accessToken.isEmpty || accessToken == '') {
-      // No access token found, redirect to login
       Navigator.pushReplacementNamed(context, '/login');
-      return const UserModel(
+      return UserModel(
           email: '',
           name: '',
-          accountType: AccountTypeEnum
-              .Unknown); // Replace 'AccountTypeEnum.none' with the appropriate value.
+          accountType: AccountTypeEnum.Unknown); // Valor padrão
     }
 
     try {
@@ -45,23 +42,21 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = null; // Clear any previous error messages
+          _errorMessage = null;
         });
       }
       return user;
     } catch (e) {
-      print('Erro ao buscar usuário: $e'); // Adicionando print para depuração
+      print('Erro ao buscar usuário: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage =
-              'Falha ao carregar o usuário: ${e.toString()}'; // Mensagem de erro detalhada
+          _errorMessage = 'Falha ao carregar o usuário: ${e.toString()}';
         });
       }
     }
 
-    throw Exception(
-        'Failed to fetch current user.'); // Add a throw statement at the end to ensure a non-null value is always returned
+    throw Exception('Failed to fetch current user.');
   }
 
   Future<void> _logout() async {
@@ -119,8 +114,7 @@ class _HomePageState extends State<HomePage> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
-                      print(
-                          'Erro na FutureBuilder: ${snapshot.error}'); // Adicionando print para depuração
+                      print('Erro na FutureBuilder: ${snapshot.error}');
                       return Center(
                         child: Text(
                           'Erro: ${snapshot.error}',
@@ -137,24 +131,46 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Text(
-                              'Nome: ${user.name}',
-                              style: Theme.of(context).textTheme.displayLarge,
+                            Card(
+                              elevation: 4.0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      'Nome: ${user.name}',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                    SizedBox(height: 8.0),
+                                    Text(
+                                      'Email: ${user.email}',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                    SizedBox(height: 8.0),
+                                    Text(
+                                      'Renda Fixa: ${user.fixedIncome}',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                            SizedBox(height: 8.0),
-                            Text(
-                              'Email: ${user.email}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            SizedBox(height: 8.0),
-                            Text(
-                              'Renda Fixa: ${user.fixedIncome}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            SizedBox(height: 16.0),
-                            ElevatedButton(
+                            SizedBox(height: 16.0, width: 26.0),
+                            ElevatedButton.icon(
                               onPressed: () => _showFixedIncomeModal(user),
-                              child: Text('Editar Renda Fixa'),
+                              icon: Icon(Icons.edit),
+                              label: Text('Editar Renda Fixa'),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 14.0, horizontal: 16.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
                             ),
                           ],
                         ),
