@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:billmate/core/config.dart';
+import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/group_model.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/group_service.dart';
@@ -47,12 +48,43 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token');
-    await prefs.remove('refresh_token');
+    final confirmLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
+          title: Text('Confirmar logout',
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary)),
+          content: Text('Você tem certeza que deseja sair da sua conta?',
+              style:
+                  TextStyle(color: AppThemes.darkTheme.colorScheme.secondary)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancelar',
+                  style:
+                      TextStyle(color: AppThemes.darkTheme.colorScheme.error)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Sair',
+                  style: TextStyle(
+                      color: AppThemes.darkTheme.colorScheme.primary)),
+            ),
+          ],
+        );
+      },
+    );
 
-    // ignore: use_build_context_synchronously
-    Navigator.pushReplacementNamed(context, '/login');
+    if (confirmLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('access_token');
+      await prefs.remove('refresh_token');
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    }
   }
 
   Future<void> _createGroup() async {

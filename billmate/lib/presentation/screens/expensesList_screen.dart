@@ -1,10 +1,11 @@
-import 'dart:convert';
 import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/expense_model.dart';
 import 'package:billmate/data/service/expense_service.dart';
 import 'package:billmate/presentation/screens/expenses_screen.dart';
+import 'package:billmate/presentation/widgets/buttonNavbar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   @override
@@ -103,6 +104,46 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    final confirmLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
+          title: Text('Confirmar logout',
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary)),
+          content: Text('Você tem certeza que deseja sair da sua conta?',
+              style:
+                  TextStyle(color: AppThemes.darkTheme.colorScheme.secondary)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancelar',
+                  style:
+                      TextStyle(color: AppThemes.darkTheme.colorScheme.error)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Sair',
+                  style: TextStyle(
+                      color: AppThemes.darkTheme.colorScheme.primary)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('access_token');
+      await prefs.remove('refresh_token');
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    }
+  }
+
   void _openEditModal(ExpenseModel expense) {
     showDialog(
       context: context,
@@ -127,7 +168,14 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lista de Despesas'),
+        title: Text('Lista de despesas'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Logout',
+          ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -181,7 +229,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                             ),
                             IconButton(
                               icon: Icon(
-                                Icons.delete,
+                                Icons.delete_forever_outlined,
                                 color: AppThemes.darkTheme.colorScheme.error,
                               ),
                               onPressed: () =>
@@ -203,6 +251,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         },
         child: Icon(Icons.add),
         tooltip: 'Adicionar Despesa',
+      ),
+      bottomNavigationBar: BottomNavBar(
+        selectedIndex: 2,
+        onItemTapped: (index) {
+          // Lógica para navegação
+        },
       ),
     );
   }
@@ -249,7 +303,7 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
       );
 
       final savedExpense = await _expenseService.updateExpense(
-          widget.expense.id!, updatedExpense);
+          widget.expense.id, updatedExpense);
 
       widget.onSave(savedExpense);
       Navigator.of(context).pop();

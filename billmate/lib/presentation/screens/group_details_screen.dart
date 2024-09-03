@@ -60,13 +60,14 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            'Deseja remover o membro?',
+            'Deseja remover o membro ?',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
             ),
           ),
-          content: Text('Tem certeza de que deseja remover ${user.name}?',
+          content: Text(
+              'Tem certeza de que deseja remover ou se remover ${user.name}?',
               style: const TextStyle(
                 color: Colors.black,
               )),
@@ -77,6 +78,8 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
+              onLongPress: () =>
+                  Navigator.pushReplacementNamed(context, '/groups'),
               child: const Text('Remover'),
             ),
           ],

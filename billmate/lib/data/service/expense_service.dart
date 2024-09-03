@@ -64,6 +64,7 @@ class ExpenseService {
       rethrow; // Re-throws the caught exception
     }
   }
+  
 
   // GET /api/expenses/{id}/
   Future<ExpenseModel> getExpenseById(int id) async {

@@ -1,8 +1,10 @@
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/user_service.dart';
+import 'package:billmate/data/service/expense_service.dart'; // Importa o ExpenseService
 import 'package:billmate/domain/entities/accountTypeEnum.dart';
 import 'package:billmate/presentation/widgets/buttonNavbar.dart'; // Ajuste o import conforme a estrutura do seu projeto
 import 'package:billmate/presentation/widgets/fixedModal.dart';
+import 'package:billmate/presentation/widgets/graficExpense.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +17,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late Future<UserModel> _userFuture;
   late UserService _userService;
+  late ExpenseService _expenseService; // Adiciona o ExpenseService
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -22,6 +25,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _userService = UserService(http.Client());
+    _expenseService =
+        ExpenseService(http.Client()); // Inicializa o ExpenseService
     _userFuture = _checkAndFetchCurrentUser();
   }
 
@@ -126,6 +131,8 @@ class _HomePageState extends State<HomePage> {
                       );
                     } else if (snapshot.hasData) {
                       final user = snapshot.data!;
+                      final fixedIncome = user.fixedIncome;
+
                       return Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
@@ -159,7 +166,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 16.0, width: 26.0),
+                            SizedBox(height: 16.0),
                             ElevatedButton.icon(
                               onPressed: () => _showFixedIncomeModal(user),
                               icon: Icon(Icons.edit),
@@ -170,6 +177,13 @@ class _HomePageState extends State<HomePage> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
+                              ),
+                            ),
+                            SizedBox(height: 16.0),
+                            Expanded(
+                              child: ExpensesChart(
+                                expenseService: _expenseService,
+                                fixedIncome: fixedIncome!,
                               ),
                             ),
                           ],

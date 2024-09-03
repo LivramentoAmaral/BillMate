@@ -50,6 +50,8 @@ class GroupDetailsModel extends GroupDetails {
     );
   }
 
+  get currentUser => null;
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

@@ -41,7 +41,6 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final user = UserModel.fromMap(data);
-        print('User ID: ${user.id}');
         return user.id!;
       } else {
         throw Exception('Failed to load current user');
@@ -53,8 +52,6 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
 
   Future<void> _addMember(int groupId, int userId) async {
     try {
-      print('groupId: $groupId');
-      print('userId: $userId');
       final prefs = await SharedPreferences.getInstance();
       final accessToken = prefs.getString('access_token') ?? '';
 
@@ -62,16 +59,18 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
         throw Exception('No access token found');
       }
 
-      final memberData = {'user': userId};
-
       final response = await http.post(
-        Uri.parse('${Config.baseUrl}groups/$groupId/add-member/'),
+        Uri.parse('${Config.baseUrl}groups/$groupId/join/'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
         },
-        body: json.encode(memberData),
       );
+
+      if (response.statusCode == 409) {
+        // Status 409 indica conflito, como membro já no grupo
+        throw Exception('User is already a member of this group.');
+      }
 
       if (response.statusCode == 404) {
         throw Exception('Group not found with ID $groupId.');
@@ -112,10 +111,11 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
                   await _addMember(groupId, userId);
 
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Member added successfully')),
+                    const SnackBar(
+                        content: Text('Membro adicionado com sucesso!')),
                   );
 
-                  Navigator.of(context).pop();
+                  Future.microtask(() => Navigator.of(context).pop());
                 } else {
                   throw FormatException(
                       'The "group_id" field is not an integer.');
@@ -125,9 +125,26 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
                     'QR Code JSON does not contain "group_id" or is in an invalid format.');
               }
             } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error adding member: $e')),
-              );
+              if (mounted) {
+                String errorMessage;
+                if (e
+                    .toString()
+                    .contains('User is already a member of this group.')) {
+                  errorMessage = 'usuário já é membro deste grupo.';
+                } else {
+                  errorMessage = 'Você já é membro do grupo!';
+
+                  Future.delayed(Duration(seconds: 3), () {
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  });
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(errorMessage)),
+                );
+              }
             }
           });
         },
