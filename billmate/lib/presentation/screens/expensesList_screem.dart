@@ -1,9 +1,10 @@
+import 'dart:convert';
+import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/expense_model.dart';
 import 'package:billmate/data/service/expense_service.dart';
 import 'package:billmate/presentation/screens/expenses_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:billmate/core/theme/app_themes.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   @override
@@ -29,6 +30,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         _expenses = expenses;
         _isLoading = false;
       });
+
+      if (expenses.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Nenhuma despesa encontrada')),
+        );
+      }
     } catch (e) {
       setState(() {
         _errorMessage =
@@ -37,6 +44,63 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       });
       print('Erro ao carregar despesas: $e');
     }
+  }
+
+  Future<void> _deleteExpense(int id) async {
+    try {
+      final expenseService = ExpenseService(http.Client());
+      await expenseService.deleteExpense(id);
+
+      setState(() {
+        _expenses.removeWhere((expense) => expense.id == id);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Despesa deletada com sucesso')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao deletar a despesa: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _confirmDeleteExpense(int id) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
+          title: Text(
+            'Confirmar Exclusão',
+            style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+          ),
+          content: Text(
+            'Você tem certeza que deseja excluir esta despesa?',
+            style: TextStyle(color: AppThemes.darkTheme.colorScheme.secondary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: AppThemes.darkTheme.colorScheme.error),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppThemes.darkTheme.colorScheme.primary,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteExpense(id);
+              },
+              child: Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _openEditModal(ExpenseModel expense) {
@@ -115,6 +179,14 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                               ),
                               onPressed: () => _openEditModal(expense),
                             ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.delete,
+                                color: AppThemes.darkTheme.colorScheme.error,
+                              ),
+                              onPressed: () =>
+                                  _confirmDeleteExpense(expense.id!),
+                            ),
                           ],
                         ),
                       ),
@@ -151,6 +223,7 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
   late TextEditingController _amountController;
   late DateTime _selectedDate;
   bool _isFixed = false;
+  late ExpenseService _expenseService;
 
   @override
   void initState() {
@@ -161,20 +234,30 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
         TextEditingController(text: widget.expense.amount.toString());
     _selectedDate = DateTime.parse(widget.expense.dateSpent);
     _isFixed = widget.expense.isFixed;
+    _expenseService = ExpenseService(http.Client());
   }
 
-  void _saveExpense() {
-    final updatedExpense = ExpenseModel(
-      id: widget.expense.id,
-      amount: double.tryParse(_amountController.text) ?? 0.0,
-      description: _descriptionController.text,
-      dateSpent: _selectedDate,
-      group: widget.expense.group,
-      isFixed: _isFixed,
-    );
+  Future<void> _saveExpense() async {
+    try {
+      final updatedExpense = ExpenseModel(
+        id: widget.expense.id,
+        amount: double.tryParse(_amountController.text) ?? 0.0,
+        description: _descriptionController.text,
+        dateSpent: _selectedDate,
+        group: widget.expense.group,
+        isFixed: _isFixed,
+      );
 
-    widget.onSave(updatedExpense);
-    Navigator.of(context).pop();
+      final savedExpense = await _expenseService.updateExpense(
+          widget.expense.id!, updatedExpense);
+
+      widget.onSave(savedExpense);
+      Navigator.of(context).pop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao atualizar a despesa: ${e.toString()}')),
+      );
+    }
   }
 
   @override

@@ -88,6 +88,15 @@ class _ExpenseFormState extends State<ExpenseForm> {
           setState(() {
             _successMessage = 'Despesa adicionada com sucesso!';
             _isLoading = false;
+            // navegar para a tela de detalhes da despesa
+            Navigator.of(context).pushNamed('/listexpenses');
+
+            // Limpe os campos do formulário
+            _descriptionController.clear();
+            _amountController.clear();
+            _selectedDate = null;
+            _selectedGroup = null;
+            _isFixed = false;
           });
         }
       } catch (e) {
