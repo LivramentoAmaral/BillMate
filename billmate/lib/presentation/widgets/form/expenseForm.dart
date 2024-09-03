@@ -1,3 +1,4 @@
+import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/expense_model.dart';
 import 'package:billmate/data/models/group_model.dart';
 import 'package:billmate/data/service/group_service.dart';
@@ -134,7 +135,10 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 ],
                 TextFormField(
                   controller: _descriptionController,
-                  decoration: InputDecoration(labelText: 'Descrição'),
+                  decoration: InputDecoration(
+                      labelText: 'Descrição',
+                      labelStyle: TextStyle(
+                          color: AppThemes.darkTheme.colorScheme.primary)),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Descrição é obrigatória';
@@ -145,7 +149,10 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 SizedBox(height: 16),
                 TextFormField(
                   controller: _amountController,
-                  decoration: InputDecoration(labelText: 'Valor'),
+                  decoration: InputDecoration(
+                      labelText: 'Valor',
+                      labelStyle: TextStyle(
+                          color: AppThemes.darkTheme.colorScheme.primary)),
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -158,14 +165,21 @@ class _ExpenseFormState extends State<ExpenseForm> {
                   },
                 ),
                 SizedBox(height: 16),
-                Text('Data da despesa:'),
+                Text(
+                  'Data da despesa:',
+                  style: TextStyle(
+                      color: AppThemes.darkTheme.colorScheme.secondary),
+                ),
                 ListTile(
                   title: Text(
+                    style: TextStyle(
+                        color: AppThemes.darkTheme.colorScheme.secondary),
                     _selectedDate != null
                         ? _selectedDate!.toLocal().toString().split(' ')[0]
                         : 'Selecionar data',
                   ),
-                  trailing: Icon(Icons.calendar_today),
+                  trailing: Icon(Icons.calendar_today,
+                      color: AppThemes.darkTheme.colorScheme.primary),
                   onTap: () async {
                     final pickedDate = await showDatePicker(
                       context: context,

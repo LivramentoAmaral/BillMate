@@ -56,7 +56,9 @@ class _FixedIncomeModalState extends State<FixedIncomeModal> {
       // Show an error message if an exception occurs
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar o valor da renda fixa: ${e.toString()}')),
+          SnackBar(
+              content: Text(
+                  'Erro ao atualizar o valor da renda fixa: ${e.toString()}')),
         );
       }
     }
@@ -66,7 +68,10 @@ class _FixedIncomeModalState extends State<FixedIncomeModal> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
-      title: Text('Editar Renda Fixa'),
+      title: Text(
+        'Editar Renda Fixa',
+        style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+      ),
       content: Padding(
         padding: const EdgeInsets.all(4.0),
         child: Column(
@@ -77,8 +82,12 @@ class _FixedIncomeModalState extends State<FixedIncomeModal> {
               decoration: InputDecoration(
                 labelText: 'Renda Fixa',
                 border: OutlineInputBorder(),
+                labelStyle: TextStyle(
+                  color: AppThemes.darkTheme.colorScheme.primary,
+                ),
               ),
               keyboardType: TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
@@ -91,7 +100,10 @@ class _FixedIncomeModalState extends State<FixedIncomeModal> {
       actions: <Widget>[
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancelar'),
+          child: Text(
+            'Cancelar',
+            style: TextStyle(color: AppThemes.darkTheme.colorScheme.error),
+          ),
         ),
       ],
     );

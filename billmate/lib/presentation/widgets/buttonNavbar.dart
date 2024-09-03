@@ -32,7 +32,7 @@ class BottomNavBar extends StatelessWidget {
       ],
       currentIndex: selectedIndex,
       selectedItemColor: theme.colorScheme.primary,
-      unselectedItemColor: theme.colorScheme.onSurface,
+      unselectedItemColor: theme.colorScheme.secondary,
       backgroundColor: theme.scaffoldBackgroundColor,
       onTap: (index) {
         switch (index) {

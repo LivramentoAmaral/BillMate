@@ -3,6 +3,7 @@ import 'package:billmate/data/service/expense_service.dart';
 import 'package:billmate/presentation/screens/expenses_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:billmate/core/theme/app_themes.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   @override
@@ -73,6 +74,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                   itemBuilder: (context, index) {
                     final expense = _expenses[index];
                     return Card(
+                      color: AppThemes.darkTheme.cardColor,
                       elevation: 3,
                       margin: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 6),
@@ -84,13 +86,13 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Theme.of(context).primaryColor,
+                            color: AppThemes.darkTheme.colorScheme.onPrimary,
                           ),
                         ),
                         subtitle: Text(
                           'Data: ${expense.dateSpent.split('T')[0]}',
                           style: TextStyle(
-                            color: Theme.of(context).hintColor,
+                            color: AppThemes.darkTheme.colorScheme.onSurface,
                           ),
                         ),
                         trailing: Row(
@@ -109,7 +111,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                             IconButton(
                               icon: Icon(
                                 Icons.edit,
-                                color: Theme.of(context).primaryColor,
+                                color: AppThemes.darkTheme.colorScheme.primary,
                               ),
                               onPressed: () => _openEditModal(expense),
                             ),
@@ -120,6 +122,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
                   },
                 ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: AppThemes.darkTheme.colorScheme.primary,
         onPressed: () {
           Navigator.push(
             context,
@@ -177,24 +180,45 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Editar Despesa'),
+      backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
+      title: Text(
+        'Editar Despesa',
+        style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+      ),
       content: SingleChildScrollView(
         child: Column(
           children: [
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Descrição'),
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+              decoration: InputDecoration(
+                labelText: 'Descrição',
+                labelStyle:
+                    TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+                border: OutlineInputBorder(),
+              ),
             ),
+            SizedBox(height: 8),
             TextField(
               controller: _amountController,
-              decoration: InputDecoration(labelText: 'Valor'),
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+              decoration: InputDecoration(
+                labelText: 'Valor',
+                labelStyle:
+                    TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.number,
             ),
+            SizedBox(height: 8),
             ListTile(
               title: Text(
                 'Data: ${_selectedDate.toLocal().toString().split(' ')[0]}',
+                style:
+                    TextStyle(color: AppThemes.darkTheme.colorScheme.secondary),
               ),
-              trailing: Icon(Icons.calendar_today),
+              trailing: Icon(Icons.calendar_today,
+                  color: AppThemes.darkTheme.colorScheme.primary),
               onTap: () async {
                 final pickedDate = await showDatePicker(
                   context: context,
@@ -210,13 +234,19 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
               },
             ),
             CheckboxListTile(
-              title: Text('Despesa fixa'),
+              title: Text(
+                'Despesa fixa',
+                style:
+                    TextStyle(color: AppThemes.darkTheme.colorScheme.secondary),
+              ),
               value: _isFixed,
               onChanged: (value) {
                 setState(() {
                   _isFixed = value ?? false;
                 });
               },
+              checkColor: AppThemes.darkTheme.colorScheme.primary,
+              activeColor: AppThemes.darkTheme.colorScheme.onPrimary,
             ),
           ],
         ),
@@ -224,9 +254,15 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text('Cancelar'),
+          child: Text(
+            'Cancelar',
+            style: TextStyle(color: AppThemes.darkTheme.colorScheme.error),
+          ),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppThemes.darkTheme.colorScheme.primary,
+          ),
           onPressed: _saveExpense,
           child: Text('Salvar'),
         ),
