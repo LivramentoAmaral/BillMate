@@ -308,6 +308,7 @@ class _EditExpenseModalState extends State<EditExpenseModal> {
       widget.onSave(savedExpense);
       Navigator.of(context).pop();
     } catch (e) {
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao atualizar a despesa: ${e.toString()}')),
       );
