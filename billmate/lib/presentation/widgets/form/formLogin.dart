@@ -60,7 +60,7 @@ class _LoginFormState extends State<LoginForm> {
         );
 
         // ignore: use_build_context_synchronously
-        Navigator.pushReplacementNamed(context, '/');
+        Navigator.pushReplacementNamed(context, '/home');
       } catch (e) {
         setState(() {
           _errorMessage = e.toString();

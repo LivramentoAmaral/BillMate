@@ -25,12 +25,12 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.darkTheme, // Tema escuro
       themeMode:
           ThemeMode.system, // Usa o tema conforme a configuração do sistema
-      initialRoute: '/login', // Rota inicial
+      initialRoute: '/', // Rota inicial 
 
       // Configura as rotas
       routes: {
-        '/': (context) => HomePage(),
-        '/login': (context) => const LoginScreen(),
+        '/home': (context) => HomePage(),
+        '/': (context) => const LoginScreen(),
         '/register': (context) => const SignupScreen(),
         '/groups': (context) => const UserGroupsPage(),
         '/listexpenses': (context) => ExpenseListScreen(),

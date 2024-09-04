@@ -80,7 +80,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                   onPressed: () {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.pushReplacementNamed(
-                        context, '/login'); // Redirect to login
+                        context, '/'); // Redirect to login
                   },
                   child: const Text('OK'),
                 ),

@@ -1,3 +1,4 @@
+import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/user_model.dart';
 import 'package:billmate/data/service/user_service.dart';
 import 'package:billmate/data/service/expense_service.dart'; // Importa o ExpenseService
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
     final accessToken = prefs.getString('access_token');
 
     if (accessToken == null || accessToken.isEmpty || accessToken == '') {
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.pushReplacementNamed(context, '/');
       return UserModel(
           email: '',
           name: '',
@@ -65,12 +66,42 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('access_token');
-    await prefs.remove('refresh_token');
+    final confirmLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
+          title: Text('Confirmar logout',
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary)),
+          content: Text('Você tem certeza que deseja sair da sua conta?',
+              style:
+                  TextStyle(color: AppThemes.darkTheme.colorScheme.secondary)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancelar',
+                  style:
+                      TextStyle(color: AppThemes.darkTheme.colorScheme.error)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text('Sair',
+                  style: TextStyle(
+                      color: AppThemes.darkTheme.colorScheme.primary)),
+            ),
+          ],
+        );
+      },
+    );
 
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/login');
+    if (confirmLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('access_token');
+      await prefs.remove('refresh_token');
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+      }
     }
   }
 
@@ -92,7 +123,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Page'),
+        title: Text('Balancço'),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.logout),
@@ -199,7 +230,7 @@ class _HomePageState extends State<HomePage> {
         onItemTapped: (index) {
           switch (index) {
             case 0:
-              Navigator.pushNamed(context, '/');
+              Navigator.pushNamed(context, '/home');
               break;
             case 1:
               Navigator.pushNamed(context, '/groups');

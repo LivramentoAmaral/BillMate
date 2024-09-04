@@ -139,7 +139,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
       await prefs.remove('refresh_token');
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/');
       }
     }
   }

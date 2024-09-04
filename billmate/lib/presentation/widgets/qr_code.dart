@@ -132,7 +132,7 @@ class _QRCodeScannerState extends State<QRCodeScanner> {
                     .contains('User is already a member of this group.')) {
                   errorMessage = 'usuário já é membro deste grupo.';
                 } else {
-                  errorMessage = 'Você já é membro do grupo!';
+                  errorMessage = 'Qr code Inválido!';
 
                   Future.delayed(Duration(seconds: 3), () {
                     if (mounted) {

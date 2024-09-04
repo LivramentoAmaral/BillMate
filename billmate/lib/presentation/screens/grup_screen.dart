@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:billmate/core/config.dart';
 import 'package:billmate/core/theme/app_themes.dart';
 import 'package:billmate/data/models/group_model.dart';
@@ -82,7 +81,7 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
       await prefs.remove('refresh_token');
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        Navigator.pushReplacementNamed(context, '/');
       }
     }
   }
@@ -202,7 +201,7 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Groups'),
+        title: const Text('Grupos'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.logout),
@@ -224,6 +223,17 @@ class _UserGroupsPageState extends State<UserGroupsPage> {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (snapshot.hasData) {
                       final groups = snapshot.data!;
+
+                      if (groups.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Nenhum grupo disponível. Crie ou junte-se a um grupo.',
+                            style: TextStyle(fontSize: 16),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      }
+
                       return ListView.builder(
                         itemCount: groups.length,
                         itemBuilder: (context, index) {
@@ -310,41 +320,34 @@ class CreateGroupDialog extends StatefulWidget {
 }
 
 class _CreateGroupDialogState extends State<CreateGroupDialog> {
-  final _nameController = TextEditingController();
+  final TextEditingController _controller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      title: const Text(
-        'Adicionar Grupo',
-        style: TextStyle(color: Colors.white),
-      ),
+      backgroundColor: AppThemes.darkTheme.scaffoldBackgroundColor,
+      title: Text('Criar Novo Grupo',
+          style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary)),
       content: TextField(
-        controller: _nameController,
-        decoration: const InputDecoration(
-          labelText: 'Nome do grupo',
+        controller: _controller,
+        style: TextStyle(color: AppThemes.darkTheme.colorScheme.onSurface),
+        decoration: InputDecoration(
+          labelText: 'Nome do Grupo',
+          labelStyle: TextStyle(color: AppThemes.darkTheme.colorScheme.primary),
         ),
       ),
-      actions: <Widget>[
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Cancelar',
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.error)),
+        ),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            widget.onCreate(_controller.text);
           },
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final name = _nameController.text;
-            if (name.isNotEmpty) {
-              widget.onCreate(name);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Grupo deve ter um nome')),
-              );
-            }
-          },
-          child: const Text('Adicionar'),
+          child: Text('Criar',
+              style: TextStyle(color: AppThemes.darkTheme.colorScheme.primary)),
         ),
       ],
     );
